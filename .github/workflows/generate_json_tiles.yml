@@ -7,7 +7,7 @@ jobs:
     name: Generate JSON tiles
     runs-on: ubuntu-latest
     env:
-      POSTGRES_DSN: postgresql://postgres@localhost/osm 
+      POSTGRES_DSN: postgresql://postgres:password@localhost/osm 
 
     services:
       postgres:
