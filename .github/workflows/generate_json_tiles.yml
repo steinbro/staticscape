@@ -30,7 +30,7 @@ jobs:
       - name: Install osm2geojson from crates.io
         uses: baptiste0928/cargo-install@v2
         with:
-          crate: osm2geojson
+          crate: osm-to-geojson
           version: "0.1.0"
       - name: Download pbf
         run: |
