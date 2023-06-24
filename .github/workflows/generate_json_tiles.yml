@@ -26,11 +26,16 @@ jobs:
           sudo mkdir -p /ingest/imposm3
           sudo chmod -R a+rw /ingest
           wget -q -O - https://github.com/omniscale/imposm3/releases/download/v0.11.1/imposm-0.11.1-linux-x86-64.tar.gz | tar -xz --strip-components=1 -C /ingest/imposm3
-          pip install pyrosm
+          pip install pyrosm mercantile supermercado
+      - name: Install osm2geojson from crates.io
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: osm2geojson
+          version: "0.1.0"
       - name: Download pbf
         run: |
           python -c "from pyrosm import get_data; fp = get_data('Monaco'); print(fp)"
-          osmium fileinfo /tmp/pyrosm/Monaco.osm.pbf
+          osmium fileinfo /tmp/pyrosm/monaco-latest.osm.pbf
       - name: Import pbf
         run: |
           imposm import -mapping config.mapping -write -connection postgresql://postgres@localhost/osm -srid 4326 -cachedir cache/
