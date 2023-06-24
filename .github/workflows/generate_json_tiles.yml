@@ -40,6 +40,8 @@ jobs:
           osmium fileinfo /tmp/pyrosm/monaco-latest.osm.pbf
       - name: Import pbf
         run: |
+          psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS postgis"
+          psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS hstore"
           /ingest/imposm3/imposm import \
             -mapping svcs/data/soundscape/other/mapping.yml \
             -read /tmp/pyrosm/monaco-latest.osm.pbf \
