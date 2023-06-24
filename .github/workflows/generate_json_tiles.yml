@@ -31,7 +31,7 @@ jobs:
         run: |
           wget -q -O - https://raw.githubusercontent.com/mapbox/postgis-vt-util/master/postgis-vt-util.sql | \
             psql -d $POSTGRES_DSN
-          psql -d $POSTGRES_DSN -f openscape/svcs/data/tilefunc.sql
+          psql -d $POSTGRES_DSN -f svcs/data/tilefunc.sql
       - name: Install dependencies
         run: |
           sudo apt install osmium-tool
@@ -47,7 +47,7 @@ jobs:
       - name: Import pbf
         run: |
           /ingest/imposm3/imposm import \
-            -mapping openscape/svcs/data/soundscape/other/mapping.yml \
+            -mapping svcs/data/soundscape/other/mapping.yml \
             -read /tmp/pyrosm/monaco-latest.osm.pbf \
             -write -connection $POSTGRES_DSN -srid 4326
       - name: Generate tiles
