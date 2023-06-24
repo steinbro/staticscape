@@ -6,6 +6,8 @@ jobs:
   run:
     name: Generate JSON tiles
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_DSN: postgresql://postgres@localhost/osm 
 
     services:
       postgres:
@@ -20,12 +22,23 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
+
+      - name: Checkout openscape
+        uses: actions/checkout@v3
+        with:
+          repository: 'openscape-community/openscape'
+      - name: Install PostGIS functions
+        run: |
+          wget -q -O - https://raw.githubusercontent.com/mapbox/postgis-vt-util/master/postgis-vt-util.sql | \
+            psql -d $POSTGRES_DSN
+          psql -d $POSTGRES_DSN -f openscape/svcs/data/tilefunc.sql
       - name: Install dependencies
         run: |
           sudo apt install osmium-tool
           sudo mkdir -p /ingest/imposm3
           sudo chmod -R a+rw /ingest
-          wget -q -O - https://github.com/omniscale/imposm3/releases/download/v0.11.1/imposm-0.11.1-linux-x86-64.tar.gz | tar -xz --strip-components=1 -C /ingest/imposm3
+          wget -q -O - https://github.com/omniscale/imposm3/releases/download/v0.11.1/imposm-0.11.1-linux-x86-64.tar.gz | \
+            tar -xz --strip-components=1 -C /ingest/imposm3
           pip install pyrosm mercantile supermercado
       - name: Download pbf
         run: |
@@ -33,7 +46,10 @@ jobs:
           osmium fileinfo /tmp/pyrosm/monaco-latest.osm.pbf
       - name: Import pbf
         run: |
-          /ingest/imposm3/imposm import -mapping config.mapping -read /tmp/pyrosm/monaco-latest.osm.pbf -connection postgresql://postgres@localhost/osm -srid 4326
+          /ingest/imposm3/imposm import \
+            -mapping openscape/svcs/data/soundscape/other/mapping.yml \
+            -read /tmp/pyrosm/monaco-latest.osm.pbf \
+            -write -connection $POSTGRES_DSN -srid 4326
       - name: Generate tiles
         run: |
           osmium export /tmp/pyrosm/monaco-latest.osm.pbf -o /tmp/pyrosm/monaco-latest..geojson
