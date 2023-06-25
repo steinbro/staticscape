@@ -7,6 +7,7 @@ jobs:
     name: Generate JSON tiles
     runs-on: ubuntu-latest
     env:
+      REGION: Monaco
       POSTGRES_DSN: postgresql://postgres:password@localhost/osm 
 
     services:
@@ -36,11 +37,10 @@ jobs:
           pip install pyrosm mercantile supermercado
       - name: Download pbf
         run: |
-          python -c "from pyrosm import get_data; fp = get_data('Monaco'); print(fp)"
-          osmium fileinfo /tmp/pyrosm/monaco-latest.osm.pbf
+          PBF_PATH=$(python -c "from pyrosm import get_data; fp = get_data('$REGION'); print(fp)")
+          echo "PBF_PATH=$PBF_PATH" >> "$GITHUB_ENV"
       - name: Import pbf
         run: |
-          psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS postgis"
           psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS hstore"
           /ingest/imposm3/imposm import \
             -mapping svcs/data/soundscape/other/mapping.yml \
@@ -54,5 +54,5 @@ jobs:
           psql -d $POSTGRES_DSN -f svcs/data/tilefunc.sql
       - name: Generate tiles
         run: |
-          osmium export /tmp/pyrosm/monaco-latest.osm.pbf -o /tmp/pyrosm/monaco-latest..geojson
-          cat /tmp/pyrosm/monaco-latest..geojson | supermercado burn 16
+          osmium export ${{ env.PBF_PATH }} -o ${{ env.PBF_PATH }}.geojson
+          cat ${{ env.PBF_PATH }}.geojson | supermercado burn 16
