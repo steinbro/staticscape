@@ -7,7 +7,8 @@ jobs:
     name: Generate JSON tiles
     runs-on: ubuntu-latest
     env:
-      REGION: Monaco
+      PBF_LINK: http://download.geofabrik.de/north-america/us/district-of-columbia-latest.osm.pbf
+      PBF_PATH: /tmp/region.osm.pbf
       POSTGRES_DSN: postgresql://postgres:password@localhost/osm 
 
     services:
@@ -34,10 +35,10 @@ jobs:
           sudo chmod -R a+rw /ingest
           wget -q -O - https://github.com/omniscale/imposm3/releases/download/v0.11.1/imposm-0.11.1-linux-x86-64.tar.gz | \
             tar -xz --strip-components=1 -C /ingest/imposm3
-          pip install pyrosm mercantile supermercado
+          pip install supermercado
       - name: Download pbf
         run: |
-          echo PBF_PATH=$(python -c "from pyrosm import get_data; fp = get_data('$REGION'); print(fp)") >> "$GITHUB_ENV"
+          wget -q -O $PBF_PATH $PBF_LINK
       - name: Import pbf
         run: |
           psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS hstore"
@@ -53,5 +54,5 @@ jobs:
           psql -d $POSTGRES_DSN -f svcs/data/tilefunc.sql
       - name: Generate tiles
         run: |
-          osmium export ${{ env.PBF_PATH }} -o ${{ env.PBF_PATH }}.geojson
-          cat ${{ env.PBF_PATH }}.geojson | supermercado burn 16
+          osmium export $PBF_PATH -o $PBF_PATH.geojson
+          cat $PBF_PATH.geojson | supermercado burn 16
