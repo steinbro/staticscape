@@ -44,9 +44,8 @@ jobs:
           psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS hstore"
           /ingest/imposm3/imposm import \
             -mapping svcs/data/soundscape/other/mapping.yml \
-            -read $PBF_PATH \
+            -read $PBF_PATH -srid 4326 -dbschema-import="public" \
             -write -connection postgis://postgres:password@localhost/osm  \
-            -srid 4326
       - name: Install PostGIS functions
         run: |
           wget -q -O - https://raw.githubusercontent.com/mapbox/postgis-vt-util/master/postgis-vt-util.sql | \
