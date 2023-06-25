@@ -37,8 +37,7 @@ jobs:
           pip install pyrosm mercantile supermercado
       - name: Download pbf
         run: |
-          PBF_PATH=$(python -c "from pyrosm import get_data; fp = get_data('$REGION'); print(fp)")
-          echo "PBF_PATH=$PBF_PATH" >> "$GITHUB_ENV"
+          echo PBF_PATH=$(python -c "from pyrosm import get_data; fp = get_data('$REGION'); print(fp)") >> "$GITHUB_ENV"
       - name: Import pbf
         run: |
           psql -d $POSTGRES_DSN -c "CREATE EXTENSION IF NOT EXISTS hstore"
